@@ -1,12 +1,16 @@
 import json
 import time
+from typing import Literal
 
-import openai
 from prompts import REACT_TOOLS_DESCRIPTION, REACT_VALID_ACTIONS, REACT_JSON_FORMAT, REACT_PROCESS_FORMAT, REACT_INTERMEDIATE_STEPS, REACT_ADDITIONAL_INSTRUCTIONS
-from utils import parse_json
+from utils import parse_json, get_completion
+
 class React:
+    
+    intermediate_steps: list[dict]
+    finish_reason: Literal["final answer", "max_steps_reached"] | None
+    
     def __init__(self, tools: list[callable], max_steps: int = 10, verbose: bool = False):
-        self.openai_client = openai.OpenAI()
         self.intermediate_steps = []
         self.completion_responses = []
         self.is_started = False
@@ -60,7 +64,7 @@ class React:
         if self.verbose:
             print(step)
     
-    def build_messages(self):
+    def build_messages(self) -> list[dict]:
         question = self.intermediate_steps[0]["question"]
         intermediate_steps=json.dumps(self.intermediate_steps[1:])
         system_prompt_message = \
@@ -72,16 +76,11 @@ class React:
                 REACT_INTERMEDIATE_STEPS.format(question=question, intermediate_steps=intermediate_steps)
         messages = [{ "role": "system", "content": system_prompt_message }]
         return messages
+
     
-    def completion(self, messages):
-        model = "gpt-4o"
-        response = self.openai_client.chat.completions.create(messages=messages, model=model)
-        self.completion_responses += [response]
-        return response.choices[0].message.content
-    
-    def reason(self):
+    def reason(self) -> tuple[str, str, str, bool]:
         messages = self.build_messages()
-        completion = self.completion(messages)
+        completion = get_completion(messages)
         parsed_completion = parse_json(completion)
         thought = parsed_completion["thought"]
         action = parsed_completion["action"]
@@ -89,7 +88,7 @@ class React:
         is_final_answer = action == "Final Answer"
         return thought, action, action_input, is_final_answer
     
-    def act(self, action, action_input):
+    def act(self, action: str, action_input: dict | str) -> str:
         tool_func = self.tools_dict[action]
         if isinstance(action_input, dict):
             tool_result = tool_func(**action_input)
@@ -119,7 +118,6 @@ class React:
         self.not_finished = True
         self.intermediate_steps = []
         self.add_step({"question": question})
-        self.next()
     
     def finish(self):
         self.not_finished = False
