@@ -6,3 +6,5 @@ def parse_json(str):
         return json.loads(str_json)
     except json.decoder.JSONDecodeError:
         raise ValueError(f"Invalid JSON: {str}")
+
+
