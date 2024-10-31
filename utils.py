@@ -8,8 +8,8 @@ def parse_json(str):
     except json.decoder.JSONDecodeError:
         raise ValueError(f"Invalid JSON: {str}")
 
-def get_completion(messages) -> str:
+def get_completion(messages) -> openai.types.completion.Completion:
     openai_client = openai.OpenAI()
     model = "gpt-4o"
     response = openai_client.chat.completions.create(messages=messages, model=model)
-    return response.choices[0].message.content
+    return response

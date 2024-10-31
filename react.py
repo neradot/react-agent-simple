@@ -2,27 +2,32 @@ import json
 import time
 from typing import Literal
 
+import openai
+
 from prompts import REACT_TOOLS_DESCRIPTION, REACT_VALID_ACTIONS, REACT_JSON_FORMAT, REACT_PROCESS_FORMAT, REACT_INTERMEDIATE_STEPS, REACT_ADDITIONAL_INSTRUCTIONS
 from utils import parse_json, get_completion
 
-class React:
-    
-    intermediate_steps: list[dict]
-    finish_reason: Literal["final answer", "max_steps_reached"] | None
+class React: 
     
     def __init__(self, tools: list[callable], max_steps: int = 10, verbose: bool = False):
-        self.intermediate_steps = []
-        self.completion_responses = []
-        self.is_started = False
-        self.not_finished = True
-        self.finish_reason = None
         self.max_steps = max_steps
-        self.start_time = None
-        self.end_time = None
-        self.tools_dict = {tool.__name__: tool for tool in tools}
-        self.verbose = verbose
-        print("React initialized with tools:")
-        print(self.tools_description)
+        self.verbose: bool = verbose
+        self.tools_dict: dict[str, callable] = {tool.__name__: tool for tool in tools}
+        self.tools_description: str = "\n".join([f"{tool_name}: {tool.__doc__}" for tool_name, tool in self.tools_dict.items()])
+        self.tools_names: list[str] = list(self.tools_dict.keys())
+        
+        self.start_time: float | None = None
+        self.end_time: float | None = None
+        self.is_started: bool = False
+        self.not_finished: bool = True
+        self.finish_reason: Literal["final answer", "max_steps_reached"] | None = None
+        self.intermediate_steps: list[dict] = []
+        self.completion_records: list[openai.types.completion.Completion] = []
+
+        if self.verbose:
+            print("Initialized agent with tools:")
+            print(f"{self.tools_description}")
+            print()
     
     @property
     def last(self):
@@ -30,19 +35,11 @@ class React:
     
     @property
     def steps_count(self):
-        return (len(self.intermediate_steps) - 1 ) / 2
+        return int((len(self.intermediate_steps) - 1 ) / 2)
     
     @property
     def is_max_steps_reached(self):
         return self.steps_count >= self.max_steps
-    
-    @property
-    def tools_description(self):
-        return "\n".join([f"{tool_name}: {tool.__doc__}" for tool_name, tool in self.tools_dict.items()])
-    
-    @property
-    def tools_names(self):
-        return [tool.__name__ for tool in self.tools]
     
     @property
     def duration(self):
@@ -53,16 +50,16 @@ class React:
     @property
     def token_usage(self):
         usage = {'prompt_tokens': 0, 'completion_tokens': 0, 'total_tokens': 0}
-        for res in self.completion_responses:
+        for res in self.completion_records:
             usage['prompt_tokens'] += res.usage.prompt_tokens
             usage['completion_tokens'] += res.usage.completion_tokens
             usage['total_tokens'] += res.usage.total_tokens
         return usage
     
-    def add_step(self, step: dict):
-        self.intermediate_steps += [step]
+    def add_intermediate_step(self, intermediate_step: dict):
+        self.intermediate_steps.append(intermediate_step)
         if self.verbose:
-            print(step)
+            print(intermediate_step)
     
     def build_messages(self) -> list[dict]:
         question = self.intermediate_steps[0]["question"]
@@ -80,7 +77,9 @@ class React:
     
     def reason(self) -> tuple[str, str, str, bool]:
         messages = self.build_messages()
-        completion = get_completion(messages)
+        completion_response = get_completion(messages)
+        self.completion_records.append(completion_response)
+        completion = completion_response.choices[0].message.content
         parsed_completion = parse_json(completion)
         thought = parsed_completion["thought"]
         action = parsed_completion["action"]
@@ -102,28 +101,32 @@ class React:
         if not self.not_finished:
             raise ValueError("React is already finished. You can start again.")
         
+        if self.verbose:
+            print(f"Step {self.steps_count}")
         thought, action, action_input, is_final_answer = self.reason() 
-        self.add_step({"thought": thought, "action": action, "action_input": action_input})
+        self.add_intermediate_step({"thought": thought, "action": action, "action_input": action_input})
         if is_final_answer:
             self.finish()
         else:
             observation = self.act(action, action_input)
-            self.add_step({"observation": observation})
+            self.add_intermediate_step({"observation": observation})
             if self.is_max_steps_reached:
                 self.finish()
         
     def start(self, question: str):
+        if self.verbose:
+            print(f"Starting agent with:")
         self.start_time = time.time()
         self.is_started = True
         self.not_finished = True
         self.intermediate_steps = []
-        self.add_step({"question": question})
+        self.add_intermediate_step({"question": question})
     
     def finish(self):
         self.not_finished = False
         if not self.is_max_steps_reached:
             self.finish_reason = "final answer"
-            self.add_step({"answer": self.last["action_input"]})
+            self.add_intermediate_step({"answer": self.last["action_input"]})
         else:
             self.finish_reason = "max_steps_reached"
         self.end_time = time.time()
