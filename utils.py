@@ -2,14 +2,13 @@ import json
 import openai
 
 def parse_json(str):
-    str_json = str.replace("```json", "").replace("```", "").strip()
+    str_json = str.replace("<reasoning>", "").replace("</reasoning>", "").strip()
     try:
         return json.loads(str_json)
     except json.decoder.JSONDecodeError:
         raise ValueError(f"Invalid JSON: {str}")
 
-def get_completion(messages) -> openai.types.completion.Completion:
+def get_completion(messages, model, **kwargs) -> openai.types.completion.Completion:
     openai_client = openai.OpenAI()
-    model = "gpt-4o"
-    response = openai_client.chat.completions.create(messages=messages, model=model)
+    response = openai_client.chat.completions.create(messages=messages, model=model, **kwargs)
     return response

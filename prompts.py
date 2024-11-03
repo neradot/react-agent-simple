@@ -10,34 +10,38 @@ REACT_VALID_ACTIONS = """Valid actions are:
 
 REACT_JSON_FORMAT = """
 Respond in the following $JSON_BLOB format:
-```json
-{{
+<reasoning>
+{
         "thought": // Explain your reasoning for the chosen action, consider previous and subsequent steps
         "action": // The name of the tool to use
         "action_input": // The input required for the tool
-}}
-```
+}
+</reasoning>
 """
 
 REACT_PROCESS_FORMAT = """
 After you select an action, you will receive an observation. Then you can select another action or provide a final answer.
 The pattern looks like this:
-```
+<reasoning>
 $JSON_BLOB
-```
-{{"observation": // action result}}
-```
+</reasoning>
+<observation>
+{"observation": // action result}
+</observation>
+<reasoning>
 $JSON_BLOB
-```
-{{"observation": // action result}}
+</reasoning>
+<observation>
+{"observation": // action result}
+</observation>
 ... (repeated until you have enough observations to answer the question)
-```json
-{{
+<reasoning>
+{
         "thought": // Explain why you have enough information to provide a final answer,
         "action": "Final Answer",
         "action_input": // Your final answer to the question
-}}
-```
+}
+</reasoning>
 """
 
 REACT_ADDITIONAL_INSTRUCTIONS = """Instructions:

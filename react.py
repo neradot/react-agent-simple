@@ -25,9 +25,7 @@ class React:
         self.completion_records: list[openai.types.completion.Completion] = []
 
         if self.verbose:
-            print("Initialized agent with tools:")
-            print(f"{self.tools_description}")
-            print()
+            print("Initialized agent with tools:", self.tools_names)
     
     @property
     def last(self):
@@ -77,7 +75,7 @@ class React:
     
     def reason(self) -> tuple[str, str, str, bool]:
         messages = self.build_messages()
-        completion_response = get_completion(messages)
+        completion_response = get_completion(messages, model="gpt-4o", temperature=0, max_tokens=256, stop=["</reasoning>"])
         self.completion_records.append(completion_response)
         completion = completion_response.choices[0].message.content
         parsed_completion = parse_json(completion)
