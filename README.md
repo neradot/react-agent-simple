@@ -28,9 +28,13 @@ A simple ReAct agent code designed for tutorial purposes. This project demonstra
    ```plaintext
    OPENAI_API_KEY=your_openai_api_key
    ```
-
+### 
 ### Running the Agent
 To run the agent, execute the following command:
 ```bash
 poetry run python react.py
 ```
+
+## Resources
+### Tutorial
+[Building a Python ReAct Agent Class: A Step-by-Step Guide](https://www.neradot.com/post/building-a-python-react-agent-class-a-step-by-step-guide) - A comprehensive tutorial explaining how this repository works and the concepts behind it.
