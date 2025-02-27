@@ -35,6 +35,11 @@ To run the agent, execute the following command:
 uv run python react.py
 ```
 
+### Print full prompt
+```bash
+uv run python prompts.py
+```
+
 ## Resources
 ### Tutorial
 [Building a Python ReAct Agent Class: A Step-by-Step Guide](https://www.neradot.com/post/building-a-python-react-agent-class-a-step-by-step-guide) - A comprehensive tutorial explaining how this repository works and the concepts behind it.
