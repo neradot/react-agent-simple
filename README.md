@@ -7,7 +7,7 @@ A simple ReAct agent code designed for tutorial purposes. This project demonstra
 ### Prerequisites
 
 - Python 3.10 or higher
-- Poetry for dependency management
+- uv for dependency management
 
 ### Installation
 
@@ -32,7 +32,7 @@ A simple ReAct agent code designed for tutorial purposes. This project demonstra
 ### Running the Agent
 To run the agent, execute the following command:
 ```bash
-poetry run python react.py
+uv run python react.py
 ```
 
 ## Resources

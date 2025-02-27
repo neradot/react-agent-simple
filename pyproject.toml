@@ -1,15 +1,11 @@
-[tool.poetry]
+[project]
 name = "react-simple"
 version = "0.1.0"
 description = "A simple ReAct agent code"
 authors = ["royp-nrd <roy@neradot.com>"]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-openai = "^1.52.2"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.64.0",
+    "python-dotenv>=1.0.1",
+]
