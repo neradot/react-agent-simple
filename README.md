@@ -1,6 +1,6 @@
 # react-simple
 
-A simple ReAct agent code designed for tutorial purposes. This project demonstrates how to create a reactive agent using OpenAI's API and custom tools.
+A simple ReAct agent code designed for tutorial purposes. This project demonstrates how to create a ReAct agent using OpenAI's API and custom tools.
 
 ## Setup
 
@@ -38,3 +38,6 @@ poetry run python react.py
 ## Resources
 ### Tutorial
 [Building a Python ReAct Agent Class: A Step-by-Step Guide](https://www.neradot.com/post/building-a-python-react-agent-class-a-step-by-step-guide) - A comprehensive tutorial explaining how this repository works and the concepts behind it.
+
+### Paper
+[ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) - The original research paper that introduced the ReAct framework.
